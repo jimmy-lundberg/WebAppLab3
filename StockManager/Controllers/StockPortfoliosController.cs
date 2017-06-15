@@ -48,7 +48,7 @@ namespace StockManager.Controllers
         // GET: StockPortfolios/Create
         public IActionResult Create()
         {
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id");
+            //ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace StockManager.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
+            //ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
             return View(stockPortfolio);
         }
 
@@ -155,6 +155,16 @@ namespace StockManager.Controllers
         private bool StockPortfolioExists(int id)
         {
             return _context.StockPortfolios.Any(e => e.Id == id);
+        }
+
+        // GET: StockPortfolios/Content/5 OR StockPortfolios/5/Content?
+        public async Task<IActionResult> Content(int id)
+        {   
+            ViewBag.PortfolioName = _context.StockPortfolios.Where(sp => sp.Id == id).Select(sp => sp.Name).Single();
+
+            var portfolioStocks = _context.SpsMappings.Where(spsm => spsm.StockPortfolioId == id).Select(spsm => spsm.Stock);
+
+            return View(await portfolioStocks.ToListAsync());
         }
     }
 }

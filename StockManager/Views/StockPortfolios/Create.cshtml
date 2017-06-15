@@ -1,22 +1,17 @@
 @model StockManager.Models.StockPortfolio
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Create";
+    ViewBag.ActiveUserId = UserManager.GetUserId(User);
 }
 
-<h2>Create</h2>
+<h2>Create Stock Portfolio</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>StockPortfolio</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="form-group">
-            <label asp-for="ApplicationUserId" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="ApplicationUserId" class ="form-control" asp-items="ViewBag.ApplicationUserId"></select>
-            </div>
-        </div>
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -25,8 +20,11 @@
             </div>
         </div>
         <div class="form-group">
+            <input asp-for="ApplicationUserId" value="@ViewBag.ActiveUserId" type="hidden" contenteditable="false" />
+        </div>
+        <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </div>
     </div>
