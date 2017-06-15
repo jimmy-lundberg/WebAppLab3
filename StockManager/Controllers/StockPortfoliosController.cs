@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using StockManager.Data;
 using StockManager.Models;
 
 namespace StockManager.Controllers
 {
+    [Authorize]
     public class StockPortfoliosController : Controller
     {
         private readonly ApplicationDbContext _context;
