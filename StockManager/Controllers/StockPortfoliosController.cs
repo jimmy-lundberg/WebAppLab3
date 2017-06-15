@@ -19,7 +19,7 @@ namespace StockManager.Controllers
 
         public StockPortfoliosController(ApplicationDbContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: StockPortfolios
@@ -182,7 +182,7 @@ namespace StockManager.Controllers
             return View(await portfolioStocks.ToListAsync());
         }
 
-        // GET: StockPortfolios/BuyStock
+        // GET: StockPortfolios/BuyStock/5
         public async Task<IActionResult> BuyStock(int? id)
         {
             if (id == null)
@@ -192,34 +192,70 @@ namespace StockManager.Controllers
 
             var stockList = await _context.Stocks.Select(s => new SelectListItem() { Text = s.Name, Value = s.Id.ToString() }).ToListAsync();
 
-            var buyStockViewModel = new BuyStockViewModel() { PortfolioId = (int)id, StockList = stockList };
-            
+            var buyStockViewModel = new BuyStockViewModel() { StockList = stockList };
+
             // ViewBag.StockSelectList = new SelectList(_context.Stocks, "Id", "Name");
 
             return View(buyStockViewModel);
         }
 
-        // POST: StockPortfolios/BuyStock
+        // POST: StockPortfolios/BuyStock/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult BuyStock([Bind("StockId","NumberOfShares","PortfolioId")] BuyStockViewModel buyStockViewModel)
+        public async Task<IActionResult> BuyStock(int id, [Bind("StockId", "NumberOfShares")] BuyStockViewModel buyStockViewModel)
         {
             if (ModelState.IsValid)
             {
-                // Do logic and save changes here...
-                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == buyStockViewModel.PortfolioId).Single();
+                // Stock portfolio is loaded into memory from database.
+                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == id).Single();
 
-                stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping() { StockId = buyStockViewModel.StockId });
+                stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping { StockId = buyStockViewModel.StockId });
 
-                _context.StockPortfolios.Update(stockPortfolio);
-                _context.SaveChangesAsync();
+                try
+                {
+                    _context.Update(stockPortfolio);
+                    await _context.SaveChangesAsync();
+                }
+                // Returns NotFound() if the stock portfolio has been deleted from the database since it was loaded into memory.
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!StockPortfolioExists(stockPortfolio.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
 
-                return RedirectToAction("Content", new { id = buyStockViewModel.PortfolioId });
+                return RedirectToAction("Content", new { id = id });
             }
-                        
-            return RedirectToAction("BuyStock", new { id = buyStockViewModel.PortfolioId } );
+
+            return RedirectToAction("BuyStock", new { id = id });
+        }
+
+        // GET: StockPortfolios/SellStock
+        public IActionResult SellStock(int? id)
+        {
+            // TODO: Add functionality for selling stock. Add logic here and finish SellStock View.
+
+            return View();
+        }
+
+        // POST: StockPortfolios/BuyStock/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SellStock(int id)
+        {
+            // Write update logic and save changes here.
+
+
+            return RedirectToAction("Content", new { id = id });
         }
     }
 }

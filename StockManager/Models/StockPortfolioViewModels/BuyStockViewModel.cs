@@ -13,7 +13,7 @@ namespace StockManager.Models.StockPortfolioViewModels
 
         public int NumberOfShares { get; set; }
 
-        public int PortfolioId { get; set; }
+        //public int PortfolioId { get; set; }
 
         public IEnumerable<SelectListItem> StockList { get; set; }
     }

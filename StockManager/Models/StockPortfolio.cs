@@ -18,5 +18,10 @@ namespace StockManager.Models
         public ApplicationUser ApplicationUser { get; set; }
 
         public virtual ICollection<StockPortfolioStockMapping> SpsMappings { get; set; }
+
+        public StockPortfolio()
+        {
+            SpsMappings = new List<StockPortfolioStockMapping>();
+        }
     }
 }
