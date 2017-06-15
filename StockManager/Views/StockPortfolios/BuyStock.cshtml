@@ -1,0 +1,33 @@
+﻿@model StockManager.Models.StockPortfolioViewModels.BuyStockViewModel
+
+<h2>Buy Stock</h2>
+
+<form asp-action="BuyStock">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <input asp-for="PortfolioId" value="@Model.PortfolioId" type="hidden" contenteditable="false" />
+        </div>
+        <div class="form-group">
+            <label asp-for="StockId" class="col-md-2 control-label">Select stock: </label>
+            <div class="col-md-10">
+                @*@Html.DropDownList("StockSelectList")*@
+                <select asp-for="StockId" asp-items="Model.StockList" class="form-control"></select>
+                <span asp-validation-for="StockId"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="NumberOfShares" class="col-md-2 control-label">Number of shares: </label>
+            <div class="col-md-10">
+                <input asp-for="NumberOfShares" min="1" value="1" class="form-control"/>
+                <span asp-validation-for="NumberOfShares"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Buy" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+</form>

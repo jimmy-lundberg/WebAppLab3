@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using StockManager.Data;
 using StockManager.Models;
+using StockManager.Models.StockPortfolioViewModels;
 
 namespace StockManager.Controllers
 {
@@ -84,7 +85,7 @@ namespace StockManager.Controllers
             {
                 return NotFound();
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
+            //ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
             return View(stockPortfolio);
         }
 
@@ -120,7 +121,7 @@ namespace StockManager.Controllers
                 }
                 return RedirectToAction("Index");
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
+            //ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
             return View(stockPortfolio);
         }
 
@@ -135,6 +136,7 @@ namespace StockManager.Controllers
             var stockPortfolio = await _context.StockPortfolios
                 .Include(s => s.ApplicationUser)
                 .SingleOrDefaultAsync(m => m.Id == id);
+
             if (stockPortfolio == null)
             {
                 return NotFound();
@@ -159,14 +161,65 @@ namespace StockManager.Controllers
             return _context.StockPortfolios.Any(e => e.Id == id);
         }
 
-        // GET: StockPortfolios/Content/5 OR StockPortfolios/5/Content?
-        public async Task<IActionResult> Content(int id)
-        {   
-            ViewBag.PortfolioName = _context.StockPortfolios.Where(sp => sp.Id == id).Select(sp => sp.Name).Single();
+        // GET: StockPortfolios/Content/5
+        public async Task<IActionResult> Content(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
             var portfolioStocks = _context.SpsMappings.Where(spsm => spsm.StockPortfolioId == id).Select(spsm => spsm.Stock);
 
+            if (portfolioStocks == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.PortfolioId = id;
+            ViewBag.PortfolioName = _context.StockPortfolios.Where(sp => sp.Id == id).Select(sp => sp.Name).Single();
+
             return View(await portfolioStocks.ToListAsync());
+        }
+
+        // GET: StockPortfolios/BuyStock
+        public async Task<IActionResult> BuyStock(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var stockList = await _context.Stocks.Select(s => new SelectListItem() { Text = s.Name, Value = s.Id.ToString() }).ToListAsync();
+
+            var buyStockViewModel = new BuyStockViewModel() { PortfolioId = (int)id, StockList = stockList };
+            
+            // ViewBag.StockSelectList = new SelectList(_context.Stocks, "Id", "Name");
+
+            return View(buyStockViewModel);
+        }
+
+        // POST: StockPortfolios/BuyStock
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BuyStock([Bind("StockId","NumberOfShares","PortfolioId")] BuyStockViewModel buyStockViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                // Do logic and save changes here...
+                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == buyStockViewModel.PortfolioId).Single();
+
+                stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping() { StockId = buyStockViewModel.StockId });
+
+                _context.StockPortfolios.Update(stockPortfolio);
+                _context.SaveChangesAsync();
+
+                return RedirectToAction("Content", new { id = buyStockViewModel.PortfolioId });
+            }
+                        
+            return RedirectToAction("BuyStock", new { id = buyStockViewModel.PortfolioId } );
         }
     }
 }
