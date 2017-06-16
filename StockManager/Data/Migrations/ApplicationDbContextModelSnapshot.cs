@@ -177,19 +177,15 @@ namespace StockManager.Data.Migrations
 
             modelBuilder.Entity("StockManager.Models.ShareBlock", b =>
                 {
-                    b.Property<int>("PortfolioId");
+                    b.Property<int>("OwnerPortfolioId");
 
-                    b.Property<int>("StockId");
+                    b.Property<int>("ParentStockId");
 
                     b.Property<int>("NumberOfShares");
 
-                    b.Property<int?>("OwnerPortfolioId");
+                    b.HasKey("OwnerPortfolioId", "ParentStockId");
 
-                    b.HasKey("PortfolioId", "StockId");
-
-                    b.HasIndex("OwnerPortfolioId");
-
-                    b.HasIndex("StockId");
+                    b.HasIndex("ParentStockId");
 
                     b.ToTable("ShareBlocks");
                 });
@@ -276,11 +272,12 @@ namespace StockManager.Data.Migrations
                 {
                     b.HasOne("StockManager.Models.StockPortfolio", "OwnerPortfolio")
                         .WithMany()
-                        .HasForeignKey("OwnerPortfolioId");
+                        .HasForeignKey("OwnerPortfolioId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("StockManager.Models.Stock", "ParentStock")
                         .WithMany("ShareBlocks")
-                        .HasForeignKey("StockId")
+                        .HasForeignKey("ParentStockId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

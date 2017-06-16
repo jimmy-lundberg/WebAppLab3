@@ -9,6 +9,10 @@ namespace StockManager.Data.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_ShareBlocks_Stocks_StockId",
+                table: "ShareBlocks");
+
             migrationBuilder.DropPrimaryKey(
                 name: "PK_ShareBlocks",
                 table: "ShareBlocks");
@@ -25,26 +29,26 @@ namespace StockManager.Data.Migrations
                 name: "SellPrice",
                 table: "ShareBlocks");
 
-            migrationBuilder.AddColumn<int>(
-                name: "PortfolioId",
+            migrationBuilder.RenameColumn(
+                name: "StockId",
                 table: "ShareBlocks",
-                nullable: false,
-                defaultValue: 0);
+                newName: "ParentStockId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_ShareBlocks_StockId",
+                table: "ShareBlocks",
+                newName: "IX_ShareBlocks_ParentStockId");
 
             migrationBuilder.AddColumn<int>(
                 name: "OwnerPortfolioId",
                 table: "ShareBlocks",
-                nullable: true);
+                nullable: false,
+                defaultValue: 0);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_ShareBlocks",
                 table: "ShareBlocks",
-                columns: new[] { "PortfolioId", "StockId" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ShareBlocks_OwnerPortfolioId",
-                table: "ShareBlocks",
-                column: "OwnerPortfolioId");
+                columns: new[] { "OwnerPortfolioId", "ParentStockId" });
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ShareBlocks_StockPortfolios_OwnerPortfolioId",
@@ -52,7 +56,15 @@ namespace StockManager.Data.Migrations
                 column: "OwnerPortfolioId",
                 principalTable: "StockPortfolios",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ShareBlocks_Stocks_ParentStockId",
+                table: "ShareBlocks",
+                column: "ParentStockId",
+                principalTable: "Stocks",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -61,21 +73,27 @@ namespace StockManager.Data.Migrations
                 name: "FK_ShareBlocks_StockPortfolios_OwnerPortfolioId",
                 table: "ShareBlocks");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_ShareBlocks_Stocks_ParentStockId",
+                table: "ShareBlocks");
+
             migrationBuilder.DropPrimaryKey(
                 name: "PK_ShareBlocks",
-                table: "ShareBlocks");
-
-            migrationBuilder.DropIndex(
-                name: "IX_ShareBlocks_OwnerPortfolioId",
-                table: "ShareBlocks");
-
-            migrationBuilder.DropColumn(
-                name: "PortfolioId",
                 table: "ShareBlocks");
 
             migrationBuilder.DropColumn(
                 name: "OwnerPortfolioId",
                 table: "ShareBlocks");
+
+            migrationBuilder.RenameColumn(
+                name: "ParentStockId",
+                table: "ShareBlocks",
+                newName: "StockId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_ShareBlocks_ParentStockId",
+                table: "ShareBlocks",
+                newName: "IX_ShareBlocks_StockId");
 
             migrationBuilder.AddColumn<int>(
                 name: "Id",
@@ -100,6 +118,14 @@ namespace StockManager.Data.Migrations
                 name: "PK_ShareBlocks",
                 table: "ShareBlocks",
                 column: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ShareBlocks_Stocks_StockId",
+                table: "ShareBlocks",
+                column: "StockId",
+                principalTable: "Stocks",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }
