@@ -10,11 +10,11 @@ namespace StockManager.Models
     public class ShareBlock
     {
         // Not needed
-        public int Id { get; set; }
+        // public int Id { get; set; }
 
-        public int StockId { get; set; }
+        public int ParentStockId { get; set; }
                                                 // Set StockId + PortfolioId as Primary Key instead
-        public int PortfolioId { get; set; }
+        public int OwnerPortfolioId { get; set; }
 
         public int NumberOfShares { get; set; }
 

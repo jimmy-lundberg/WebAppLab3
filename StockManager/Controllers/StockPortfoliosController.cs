@@ -222,8 +222,8 @@ namespace StockManager.Controllers
                     stock.ShareBlocks.Add(new ShareBlock
                     {
                         NumberOfShares = buyStockViewModel.NumberOfShares,
-                        StockId = buyStockViewModel.StockId,
-                        PortfolioId = id,
+                        ParentStockId = buyStockViewModel.StockId,
+                        OwnerPortfolioId = id,
                         ParentStock = stock,
                         OwnerPortfolio = stockPortfolio
                     });
@@ -265,7 +265,7 @@ namespace StockManager.Controllers
 
         private ShareBlock GetShareBlock(int portfolioId, int stockId)
         {
-            return _context.ShareBlocks.Where(sb => sb.PortfolioId == portfolioId && sb.StockId == stockId).SingleOrDefault();
+            return _context.ShareBlocks.Where(sb => sb.OwnerPortfolioId == portfolioId && sb.ParentStockId == stockId).SingleOrDefault();
         }
 
         // GET: StockPortfolios/SellStock

@@ -29,6 +29,7 @@ namespace StockManager.Data
             // Add your customizations after calling base.OnModelCreating(builder);
             modelBuilder.Entity<ApplicationUser>().ToTable("ApplicationUsers");
             modelBuilder.Entity<StockPortfolioStockMapping>().HasKey(x => new { x.StockPortfolioId, x.StockId });
+            modelBuilder.Entity<ShareBlock>().HasKey(x => new { x.OwnerPortfolioId, x.ParentStockId });
         }
     }
 }
