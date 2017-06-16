@@ -208,14 +208,40 @@ namespace StockManager.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Stock portfolio is loaded into memory from database.
-                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == id).Single();
+                var portfolioId = id;
+                var stockId = buyStockViewModel.StockId;
 
-                stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping { StockId = buyStockViewModel.StockId });
+                // Stock/Stock portfolio is loaded into memory from database.
+                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == portfolioId).Single();
+                var stock = _context.Stocks.Where(s => s.Id == stockId).Single();
+
+                var shareBlock = GetShareBlock(portfolioId, stockId);
+
+                if (shareBlock == null)
+                {
+                    stock.ShareBlocks.Add(new ShareBlock
+                    {
+                        NumberOfShares = buyStockViewModel.NumberOfShares,
+                        StockId = buyStockViewModel.StockId,
+                        PortfolioId = id,
+                        ParentStock = stock,
+                        OwnerPortfolio = stockPortfolio
+                    });
+
+                    stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping { StockId = stockId });
+                }
+                else
+                {
+                    shareBlock.NumberOfShares += buyStockViewModel.NumberOfShares;
+                }
+                
 
                 try
                 {
                     _context.Update(stockPortfolio);
+                    _context.Update(stock);
+                    _context.Update(shareBlock);
+
                     await _context.SaveChangesAsync();
                 }
                 // Returns NotFound() if the stock portfolio has been deleted from the database since it was loaded into memory.
@@ -235,6 +261,11 @@ namespace StockManager.Controllers
             }
 
             return RedirectToAction("BuyStock", new { id = id });
+        }
+
+        private ShareBlock GetShareBlock(int portfolioId, int stockId)
+        {
+            return _context.ShareBlocks.Where(sb => sb.PortfolioId == portfolioId && sb.StockId == stockId).SingleOrDefault();
         }
 
         // GET: StockPortfolios/SellStock
