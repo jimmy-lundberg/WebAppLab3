@@ -219,34 +219,36 @@ namespace StockManager.Controllers
 
                 if (shareBlock == null)
                 {
-                    stock.ShareBlocks.Add(new ShareBlock
+                    shareBlock = new ShareBlock
                     {
                         NumberOfShares = buyStockViewModel.NumberOfShares,
                         ParentStockId = buyStockViewModel.StockId,
                         OwnerPortfolioId = id,
                         ParentStock = stock,
                         OwnerPortfolio = stockPortfolio
-                    });
+                    };
 
+                    stock.ShareBlocks.Add(shareBlock);
                     stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping { StockId = stockId });
+
+                    _context.Update(stock);
+                    _context.Update(stockPortfolio);
+                    _context.Add(shareBlock);
                 }
                 else
                 {
                     shareBlock.NumberOfShares += buyStockViewModel.NumberOfShares;
+                    _context.Update(shareBlock);
                 }
                 
-
                 try
                 {
-                    _context.Update(stockPortfolio);
-                    _context.Update(stock);
-                    _context.Update(shareBlock);
-
                     await _context.SaveChangesAsync();
                 }
-                // Returns NotFound() if the stock portfolio has been deleted from the database since it was loaded into memory.
+                
                 catch (DbUpdateConcurrencyException)
                 {
+                    // Returns NotFound() if the stock portfolio has been deleted from the database since it was loaded into memory.
                     if (!StockPortfolioExists(stockPortfolio.Id))
                     {
                         return NotFound();
