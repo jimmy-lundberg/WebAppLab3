@@ -35,7 +35,7 @@ namespace StockManager.Models
             ShareBlocks = new List<ShareBlock>();
             SpsMappings = new List<StockPortfolioStockMapping>();
             rng = new Random();
-            marketPrice = rng.Next(50, 500);
+            marketPrice = 350; //rng.Next(50, 500);
         }
 
         //public decimal GetMarketPrice()

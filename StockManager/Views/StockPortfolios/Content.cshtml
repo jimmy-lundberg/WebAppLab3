@@ -4,6 +4,7 @@
 
 <p>
     <a class="btn btn-primary" asp-action="BuyStock" asp-route-id="@ViewBag.PortfolioId">Buy stock</a>
+    <a class="btn btn-primary" asp-action="SellStock" asp-route-id="@ViewBag.PortfolioId">Sell stock</a>
 </p>
 
 <table class="table">
@@ -11,22 +12,24 @@
         <tr>
             <th>
                 @*@Html.DisplayNameFor(model => model.Name)*@
-                <label>Stocks</label>
+                <label>Stock</label>
             </th>
-            <th></th>
+            <th>
+                <label>Current share price (SEK)</label>
+            </th>
+            <th>
+                <label>Number of shares</label>
+            </th>
+            <th>
+                <label>Current market value (SEK)</label>
+            </th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    <a asp-action="StockInfo" asp-route-id="@item.Id">Info</a> |
-                    <a asp-action="SellStock" asp-route-id="@item.Id">Sell</a>
-                </td>
+                @await Component.InvokeAsync("StockInfoRow", new { portfolioId = ViewBag.PortfolioId, stockId = item.Id })
             </tr>
         }
     </tbody>

@@ -194,7 +194,7 @@ namespace StockManager.Controllers
 
             var buyStockViewModel = new BuyStockViewModel() { StockList = stockList };
 
-            // ViewBag.StockSelectList = new SelectList(_context.Stocks, "Id", "Name");
+            ViewBag.PortfolioId = id;
 
             return View(buyStockViewModel);
         }
@@ -271,11 +271,26 @@ namespace StockManager.Controllers
         }
 
         // GET: StockPortfolios/SellStock
-        public IActionResult SellStock(int? id)
+        public async Task<IActionResult> SellStock(int? id)
         {
-            // TODO: Add functionality for selling stock. Add logic here and finish SellStock View.
+            if (id == null)
+            {
+                return NotFound();
+            }
+            
+            var ownedStocks = 
+                from allStocks in _context.Stocks
+                join allSpsMappings in _context.SpsMappings on allStocks.Id equals allSpsMappings.StockId
+                where allSpsMappings.StockPortfolioId == id
+                select allStocks;
 
-            return View();
+            var ownedStockList = await ownedStocks.Select(s => new SelectListItem() { Text = s.Name, Value = s.Id.ToString() }).ToListAsync();
+
+            var sellStockViewModel = new SellStockViewModel() { OwnedStockList = ownedStockList };
+
+            ViewBag.PortfolioId = id;
+
+            return View(sellStockViewModel);
         }
 
         // POST: StockPortfolios/BuyStock/5
