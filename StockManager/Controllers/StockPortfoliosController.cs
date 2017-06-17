@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using StockManager.Data;
 using StockManager.Models;
 using StockManager.Models.StockPortfolioViewModels;
+using Newtonsoft.Json;
 
 namespace StockManager.Controllers
 {
@@ -195,6 +196,7 @@ namespace StockManager.Controllers
             var buyStockViewModel = new BuyStockViewModel() { StockList = stockList };
 
             ViewBag.PortfolioId = id;
+            TempData["StockList"] = JsonConvert.SerializeObject(stockList);
 
             return View(buyStockViewModel);
         }
@@ -228,8 +230,11 @@ namespace StockManager.Controllers
                         OwnerPortfolio = stockPortfolio
                     };
 
+                    var SpsMapping = new StockPortfolioStockMapping { StockId = stockId, StockPortfolioId = portfolioId };
+
                     stock.ShareBlocks.Add(shareBlock);
-                    stockPortfolio.SpsMappings.Add(new StockPortfolioStockMapping { StockId = stockId });
+                    stock.SpsMappings.Add(SpsMapping);
+                    stockPortfolio.SpsMappings.Add(SpsMapping);
 
                     _context.Update(stock);
                     _context.Update(stockPortfolio);
@@ -240,12 +245,12 @@ namespace StockManager.Controllers
                     shareBlock.NumberOfShares += buyStockViewModel.NumberOfShares;
                     _context.Update(shareBlock);
                 }
-                
+
                 try
                 {
                     await _context.SaveChangesAsync();
                 }
-                
+
                 catch (DbUpdateConcurrencyException)
                 {
                     // Returns NotFound() if the stock portfolio has been deleted from the database since it was loaded into memory.
@@ -262,7 +267,10 @@ namespace StockManager.Controllers
                 return RedirectToAction("Content", new { id = id });
             }
 
-            return RedirectToAction("BuyStock", new { id = id });
+            buyStockViewModel.StockList = JsonConvert.DeserializeObject<IEnumerable<SelectListItem>>(TempData["StockList"].ToString());
+            TempData.Keep("StockList");
+
+            return View(buyStockViewModel);
         }
 
         private ShareBlock GetShareBlock(int portfolioId, int stockId)
@@ -277,8 +285,8 @@ namespace StockManager.Controllers
             {
                 return NotFound();
             }
-            
-            var ownedStocks = 
+
+            var ownedStocks =
                 from allStocks in _context.Stocks
                 join allSpsMappings in _context.SpsMappings on allStocks.Id equals allSpsMappings.StockId
                 where allSpsMappings.StockPortfolioId == id
@@ -289,6 +297,7 @@ namespace StockManager.Controllers
             var sellStockViewModel = new SellStockViewModel() { OwnedStockList = ownedStockList };
 
             ViewBag.PortfolioId = id;
+            TempData["OwnedStockList"] = JsonConvert.SerializeObject(ownedStockList);
 
             return View(sellStockViewModel);
         }
@@ -298,12 +307,69 @@ namespace StockManager.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SellStock(int id)
+        public async Task<IActionResult> SellStock(int id, [Bind("StockId","NumberOfShares", "OwnedStockList")] SellStockViewModel sellStockViewModel)
         {
-            // Write update logic and save changes here.
+            var portfolioId = id;
+            var stockId = sellStockViewModel.StockId;
 
+            var shareBlock = GetShareBlock(portfolioId, stockId);
+            
+            if (shareBlock.NumberOfShares < sellStockViewModel.NumberOfShares)
+            {
+                ModelState.AddModelError("NumberOfShares", "Transaction failed! You don't have that many shares to sell! Please select a smaller number.");
+            }
 
-            return RedirectToAction("Content", new { id = id });
+            if (ModelState.IsValid)
+            {              
+
+                var stockPortfolio = _context.StockPortfolios.Where(sp => sp.Id == portfolioId).Include("SpsMappings").Single();
+                var stock = _context.Stocks.Where(s => s.Id == stockId).Single();
+
+                if (shareBlock.NumberOfShares == sellStockViewModel.NumberOfShares)
+                {
+                    stock.ShareBlocks.Remove(shareBlock);
+
+                    var spsMapping = stockPortfolio.SpsMappings.Where(spsm => spsm.StockPortfolioId == portfolioId).Single();
+
+                    // Unnecessary? Maybe these are removed automatically by Entity Framework?
+                    stock.SpsMappings.Remove(spsMapping);
+                    stockPortfolio.SpsMappings.Remove(spsMapping);
+
+                    _context.Update(stock);
+                    _context.Update(stockPortfolio);
+                    _context.Remove(spsMapping);
+                    _context.Remove(shareBlock);
+                }
+                else
+                {
+                    shareBlock.NumberOfShares -= sellStockViewModel.NumberOfShares;
+
+                    _context.Update(shareBlock);
+                }
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!StockPortfolioExists(stockPortfolio.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return RedirectToAction("Content", new { id = id });
+            }
+
+            sellStockViewModel.OwnedStockList = JsonConvert.DeserializeObject<IEnumerable<SelectListItem>>(TempData["OwnedStockList"].ToString());
+            TempData.Keep("OwnedStockList");
+
+            return View(sellStockViewModel);
         }
     }
 }

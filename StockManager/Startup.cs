@@ -46,7 +46,9 @@ namespace StockManager
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-
+            
+            services.AddMemoryCache();
+            services.AddSession();
             services.AddMvc();
 
             // Add application services.
@@ -76,6 +78,8 @@ namespace StockManager
             app.UseIdentity();
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
+
+            app.UseSession();
 
             app.UseMvc(routes =>
             {
