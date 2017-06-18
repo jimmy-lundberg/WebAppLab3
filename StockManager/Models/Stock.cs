@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,13 +30,17 @@ namespace StockManager.Models
 
         private Random rng;
         private decimal marketPrice;
-
+        private Stopwatch stopwatch;
+        
         public Stock()
         {
+            stopwatch = new Stopwatch();
+            stopwatch.Start();
             ShareBlocks = new List<ShareBlock>();
             SpsMappings = new List<StockPortfolioStockMapping>();
-            rng = new Random();
             marketPrice = 350; //rng.Next(50, 500);
+            stopwatch.Stop();
+            rng = new Random((int)stopwatch.ElapsedTicks);
         }
 
         //public decimal GetMarketPrice()
