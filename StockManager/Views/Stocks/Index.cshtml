@@ -14,7 +14,9 @@
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
-                @*<label>Stock name</label>*@
+            </th>
+            <th>
+                <label>Price per share (SEK)</label>
             </th>
             <th></th>
         </tr>
@@ -25,6 +27,9 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MarketPrice)
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

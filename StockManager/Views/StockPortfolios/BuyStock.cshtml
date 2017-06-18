@@ -9,7 +9,6 @@
         <div class="form-group">
             <label asp-for="StockId" class="col-md-2 control-label">Select stock: </label>
             <div class="col-md-4">
-                @*@Html.DropDownList("StockSelectList")*@
                 <select asp-for="StockId" asp-items="Model.StockList" class="form-control" id="selected-stock-to-buy"></select>
                 <span asp-validation-for="StockId" class="text-danger"></span>
             </div>
@@ -25,7 +24,7 @@
                 <span asp-validation-for="NumberOfShares" class="text-danger"></span>
             </div>
             <label class="col-md-2 control-label">Total price: </label>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <p id="total-buy-price" class="form-control">1 SEK</p>
             </div>
         </div>
