@@ -122,7 +122,7 @@ namespace StockManager.Controllers
                 }
                 return RedirectToAction("Index");
             }
-            //ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", stockPortfolio.ApplicationUserId);
+
             return View(stockPortfolio);
         }
 
@@ -151,9 +151,16 @@ namespace StockManager.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var stockPortfolio = await _context.StockPortfolios.SingleOrDefaultAsync(m => m.Id == id);
+            var stockPortfolio = await _context.StockPortfolios.Include("SpsMappings").SingleOrDefaultAsync(m => m.Id == id);
+            var spsMappings = stockPortfolio.SpsMappings; // Is null if portfolio is empty!
+            var shareBlocks = await _context.ShareBlocks.Where(sb => sb.OwnerPortfolioId == id).ToListAsync();
+
+            _context.SpsMappings.RemoveRange(spsMappings);
+            _context.ShareBlocks.RemoveRange(shareBlocks);
             _context.StockPortfolios.Remove(stockPortfolio);
+
             await _context.SaveChangesAsync();
+
             return RedirectToAction("Index");
         }
 
@@ -329,7 +336,7 @@ namespace StockManager.Controllers
                 {
                     stock.ShareBlocks.Remove(shareBlock);
 
-                    var spsMapping = stockPortfolio.SpsMappings.Where(spsm => spsm.StockPortfolioId == portfolioId).Single();
+                    var spsMapping = stockPortfolio.SpsMappings.Where(spsm => spsm.StockId == stockId).Single();
 
                     // Unnecessary? Maybe these are removed automatically by Entity Framework?
                     stock.SpsMappings.Remove(spsMapping);

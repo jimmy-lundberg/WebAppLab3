@@ -147,9 +147,22 @@ namespace StockManager.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var stock = await _context.Stocks.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Stocks.Remove(stock);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Index");
+            var shareBlocks = await _context.ShareBlocks.Where(sb => sb.ParentStockId == id).ToListAsync();
+
+            if (shareBlocks.Count == 0)
+            {
+                _context.Stocks.Remove(stock);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError("", "This stock is present in one or more stock portfolios and cannot be deleted. " +
+                    "Only stocks without owners can be deleted.");
+
+                return View(stock);
+            }
         }
 
         private bool StockExists(int id)
